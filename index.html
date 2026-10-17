@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><title>Elevate CRM</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<!doctype html><html lang="en"><head><title>Raise &amp; Brokering Tracker</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>:root{--bg:#f3f4f6;--panel:#ffffff;--card:#ffffff;--card2:#f9fafb;--line:#d1d5db;--gold:#1e3a8a;--gold2:#2563eb;--golddk:#1e3a8a;--txt:#111827;--muted:#6b7280;--red:#b91c1c;--green:#15803d}
 *{box-sizing:border-box}
@@ -166,11 +166,11 @@ table{background:#141414;color:#f5f5f5}th{background:#0c0c0c!important;color:#e8
 tr:nth-child(even) td{background:#0c0c0c66}tr:hover td{background:#e8b92314}input,select{background:#0c0c0c;color:#f5f5f5;border:1px solid #2a2a2a}
 .panel,.kpi{background:linear-gradient(180deg,#1c1c1c,#141414)!important;border-color:#2a2a2a!important}.row-warn td{background:#3a2a0a66!important}
 .neg,td.neg{color:var(--red)!important}.pos,td.pos{color:var(--green)!important}</style></head><body>
-<div id="gate"><form onsubmit="event.preventDefault();unlock()"><h1 style="color:#e8b923">Elevate CRM</h1><p class="muted">Enter password</p><input id="pw" type="password" autofocus><button>Open</button><div id="err" class="neg"></div></form></div>
-<header class="top"><div class="wrap"><h1 id="title"></h1><p id="subtitle" class="muted"></p><nav id="nav" class="pills"></nav></div></header><main class="wrap" id="app"></main><footer class="wrap foot muted" id="foot"></footer>
-<script id="crmapp" type="text/plain">(function(){
+<div id="gate"><form onsubmit="event.preventDefault();unlock()"><h1 style="color:#e8b923">Raise &amp; Brokering Tracker</h1><p class="muted">Enter password</p><input id="pw" type="password" autofocus><button>Open</button><div id="err" class="neg"></div></form></div>
+<header class="top"><div class="wrap"><h1 id="title"></h1><p id="subtitle" class="muted"></p><div class="pills" id="top" style="margin-top:12px"><button data-t="All">All</button><button data-t="E">Elevate Raise</button><button data-t="B">BVG Raise</button><button data-t="K">Brokering</button></div><nav id="nav" class="pills" style="margin-top:8px"></nav></div></header><main class="wrap" id="app"></main><footer class="wrap foot muted" id="foot"></footer>
+<script id="crmapp" type="text/plain">(function(){(function(){
 const D = window.CRM, S = D.sheets;
-const TABS = ['Dashboard','Investors','Investor Positions','Deals','Commissions','Raise Income','Brokering Income','Brokered RE Transactions','Combined','Pipeline','Activity Log','Year by Year','Reconciliation'];
+const TABS = window.CRM_TABS;
 const $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstChild;};
 const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = (v,dec) => (v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:dec?2:0,maximumFractionDigits:dec?2:0});
@@ -514,17 +514,38 @@ document.getElementById('subtitle').textContent=D.dashboard.subtitle;
 document.getElementById('foot').textContent=`Generated from ${D.source} · ${D.generated} · Shepard Banks Investments · raise & brokering data only.`;
 function go(name,arg){ if(arg===undefined&&name&&name.includes('::')){[name,arg]=name.split('::');} if(!views[name]) name='Dashboard'; app.innerHTML=''; [...nav.children].forEach(b=>b.classList.toggle('on',b.textContent===name)); views[name](app,name,arg); const h='#'+encodeURIComponent(name+(arg?'::'+arg:'')); if(location.hash!==h) history.replaceState(null,'',h); window.scrollTo(0,0); }
 TABS.forEach(t=>{const b=$(`<button>${t}</button>`);b.onclick=()=>go(t);nav.appendChild(b);});
-window.addEventListener('hashchange',()=>go(decodeURIComponent(location.hash.slice(1))));
+window.onhashchange=(()=>go(decodeURIComponent(location.hash.slice(1))));
 go(decodeURIComponent(location.hash.slice(1))||'Dashboard');
 })();
-</script>
+
+})();</script>
 <script>
+const ALLV=['Dashboard','Investors','Investor Positions','Deals','Commissions','Raise Income','Brokering Income','Brokered RE Transactions','Combined','Activity Log','Year by Year','Reconciliation'];
+const TV={All:ALLV,E:['Investors','Investor Positions','Deals','Commissions','Raise Income','Activity Log','Year by Year'],B:['Investors','Investor Positions','Deals','Raise Income','Activity Log','Year by Year'],K:['Investor Positions','Deals','Commissions','Brokering Income','Brokered RE Transactions']};
+const RX={E:/elevate/i,B:/boa ?vida|bvg/i,K:/brokering|transaction/i};const XC={E:/BVG|BROKER/i,B:/ELEVATE|BROKER|RAISE PAID/i,K:/ELEVATE|BVG|RAISE/i};
+function filt(full,t){const d=JSON.parse(JSON.stringify(full));if(t==='All')return d;const rx=RX[t];
+ for(const [name,blocks] of Object.entries(d.sheets)){if(!TV[t].includes(name)){continue;}
+  d.sheets[name]=blocks.filter(b=>{if(b.type!=='table')return true;const H=b.header.map(h=>String(h||''));
+   const sc=H.findIndex(h=>/^(SYNDICATOR|PROGRAMS|PROGRAM \/ SPONSOR|SYNDICATORS)$/.test(h));
+   if(sc<0&&name==='Deals'){}
+   if(sc>=0){b.rows=b.rows.filter(r=>rx.test(String(r[sc]||''))||(name==='Deals'&&t==='K'&&/brokering|transaction/i.test(String(r[2]||''))));return b.rows.length>0;}
+   if(name==='Commissions'){const isB=H.includes('COUNTERPARTY');if(t==='K')return isB;if(t==='E')return !isB&&!/TOTALS/.test(H[0]);return false;}
+   if(name==='Raise Income'&&H[0]==='OFFERING')return t==='E';
+   const keep=H.map((h,i)=>i===0||!XC[t].test(h));const mon=H.map((h,i)=>keep[i]&&/\$|COMM/.test(h));
+   if(!mon.some(Boolean))return true;
+   b.header=b.header.filter((_,i)=>keep[i]);b.rows=b.rows.filter(r=>/total/i.test(String(r[0]))||r.some((c,i)=>mon[i]&&c));b.rows=b.rows.map(r=>r.filter((_,i)=>keep[i]));delete b.cols;return b.rows.length>0;});}
+ return d;}
+let FULL;function tab(t){if(!TV[t])t='All';localStorage.rbtab=t;document.querySelectorAll('#top button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ window.CRM=filt(FULL,t);window.CRM_TABS=TV[t];document.getElementById('nav').innerHTML='';document.getElementById('app').innerHTML='';
+ const cur=decodeURIComponent(location.hash.slice(1)).split('::')[0];if(!TV[t].includes(cur))history.replaceState(null,'','#'+encodeURIComponent(TV[t][0]));
+ const s=document.createElement('script');s.textContent=document.getElementById('crmapp').textContent;document.body.appendChild(s);s.remove();}
+document.addEventListener('click',e=>{const b=e.target.closest('#top button');if(b)tab(b.dataset.t)});
 async function unlock(){const pw=document.getElementById('pw').value;try{
 const e=await (await fetch('crm.enc.json',{cache:'no-store'})).json();const b=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
 const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
 const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b(e.salt),iterations:e.iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
-window.CRM=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b(e.iv)},key,b(e.ct))));
-const s=document.createElement('script');s.textContent=document.getElementById('crmapp').textContent;document.body.appendChild(s);document.getElementById('gate').remove();}catch(x){document.getElementById('err').textContent='Wrong password';}}
+FULL=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b(e.iv)},key,b(e.ct))));
+document.getElementById('gate').remove();tab(localStorage.rbtab||'All');}catch(x){document.getElementById('err').textContent='Wrong password';}}
 </script><!--SORTABLE-START--><script>
 /* Shared sortable tables (Grok Bot trackers). Click any header: asc/desc toggle with ▲/▼.
    Works on dynamically rendered tables via event delegation. Totals (tfoot, .total/.ft/.tot rows,
